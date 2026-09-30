@@ -1,0 +1,301 @@
+import time
+from datetime import date
+
+CortePredeterminado = date(2026, 9, 30)
+
+Municipios = {
+    "44001": ("Riohacha", 2.45, "rojo oscuro", 7),
+    "44035": ("Albania", 3.69, "rojo oscuro", 7),
+    "44078": ("Barrancas", 5.70, "rojo", 5),
+    "44090": ("Dibulla", 8.33, "azul", 2),
+    "44098": ("Distraccion", 11.69, "azul", 2),
+    "44110": ("El Molino", 5.00, "rojo", 5),
+    "44279": ("Fonseca", 9.22, "azul", 2),
+    "44378": ("Hatonuevo", 8.74, "azul", 2),
+    "44420": ("La Jagua del Pilar", 8.33, "azul", 2),
+    "44430": ("Maicao", 10.16, "azul", 2),
+    "44560": ("Manaure", 7.87, "amarillo", 3),
+    "44650": ("San Juan del Cesar", 7.06, "naranja", 4),
+    "44847": ("Uribia", 7.13, "naranja", 4),
+    "44855": ("Urumita", 8.75, "azul", 2),
+    "44874": ("Villanueva", 6.84, "naranja", 4),
+}
+
+Pesos = {
+    "SRP": 5, "POLIO": 5, "DPT": 5, "FA": 4, "NEUMO": 4,
+    "TD": 4, "HEPB": 4, "BCG": 4, "ROTA": 3, "INFLUENZA": 3,
+    "VPH": 3, "VARICELA": 2, "HEPA": 2, "COVID19": 1,
+}
+Serie = {
+    "BCG": ((0,), 71), "HEPB": ((0,), 1),
+    "DPT": ((2, 4, 6, 18, 60), 71),
+    "POLIO": ((2, 4, 6, 18, 60), 71),
+    "ROTA": ((2, 4), 8), "NEUMO": ((2, 4, 12), 71),
+    "SRP": ((12, 18), 71), "VARICELA": ((12, 60), 71),
+    "HEPA": ((12,), 71),
+}
+
+Datos = [
+    ("FICT-001", "Ainara", "Epieyu", "F", "2025-08-20", "44001", "Tomarrazon", 0, 0, 0, "SRP", "", ""),
+    ("FICT-002", "Jusayu", "Uriana", "M", "2026-02-25", "44001", "Camarones", 0, 0, 0, "DPT,POLIO", "", ""),
+    ("FICT-003", "Sumaia", "Pushaina", "F", "2024-07-12", "44847", "Nazareth", 0, 0, 0, "SRP,FA", "", ""),
+    ("FICT-004", "Arianna", "Ipuana", "M", "2022-01-14", "44847", "Nazareth", 0, 0, 0, "VARICELA,HEPA", "", ""),
+    ("FICT-005", "Maria", "Gomez", "F", "2021-07-09", "44560", "Mayapo", 0, 0, 0, "VARICELA", "", ""),
+    ("FICT-006", "Jose", "Pinto", "M", "2026-06-18", "44078", "Papayal", 0, 0, 0, "ROTA", "", ""),
+    ("FICT-007", "Kalam", "Brito", "F", "2025-01-25", "44035", "Cuestecitas", 0, 0, 0, "SRP,FA", "", ""),
+    ("FICT-008", "Luis", "Daza", "M", "2025-12-05", "44430", "Paraguachon", 0, 0, 0, "INFLUENZA", "", ""),
+    ("FICT-009", "Yurley", "Jayariyu", "F", "2025-06-10", "44650", "Casco urbano San Juan del Cesar", 0, 0, 0, "NEUMO", "", ""),
+    ("FICT-010", "Ana", "Uriana", "F", "2015-03-22", "44430", "Paraguachon", 0, 0, 0, "VPH", "", ""),
+    ("FICT-011", "Miguel", "Epieyu", "M", "2017-04-03", "44090", "Palomino", 0, 0, 0, "VPH", "", ""),
+    ("FICT-012", "Lina", "Daza", "F", "2002-05-16", "44560", "Mayapo", 0, 0, 0, "TD", "", ""),
+    ("FICT-013", "Yolima", "Pushaina", "F", "2007-02-11", "44847", "Cabo de la Vela", 28, 0, 0, "TD,INFLUENZA", "", ""),
+    ("FICT-014", "Martha", "Gomez", "F", "1995-09-08", "44001", "Camarones", 16, 0, 0, "INFLUENZA", "", ""),
+    ("FICT-015", "Carlos", "Brito", "F", "1988-03-03", "44279", "Casco urbano Fonseca", 0, 1, 0, "", "INFLUENZA,COVID19", ""),
+    ("FICT-016", "Andres", "Cabra", "M", "1974-06-21", "44110", "Casco urbano El Molino", 0, 0, 1, "", "", "INFLUENZA,COVID19"),
+    ("FICT-017", "Elena", "Ipuana", "F", "1958-01-30", "44035", "Cuestecitas", 0, 0, 0, "", "INFLUENZA,COVID19", ""),
+    ("FICT-018", "Jorge", "Daza", "M", "1952-08-14", "44855", "Casco urbano Urumita", 0, 0, 0, "", "COVID19", ""),
+    ("FICT-019", "Diego", "Jayariyu", "M", "1997-02-09", "44001", "Tomarrazon", 0, 0, 0, "FA", "", ""),
+    ("FICT-020", "Rosa", "Uriana", "F", "1981-05-27", "44078", "Papayal", 0, 0, 0, "TD", "", ""),
+]
+
+
+def edad_meses(nacimiento, corte):
+    meses = (corte.year - nacimiento.year) * 12 + corte.month - nacimiento.month
+    if corte.day < nacimiento.day:
+        meses -= 1
+    return max(0, meses)
+
+
+def lista_texto(texto):
+    if not texto:
+        return set()
+    return set(texto.split(","))
+
+
+def crear_personas(corte):
+    personas = []
+    for fila in Datos:
+        identificador, nombres, apellidos, sexo, fecha, municipio, comunidad, semanas, ths, comorbilidad, faltan, vencidas, nunca = fila
+        nacimiento = date.fromisoformat(fecha)
+        personas.append({
+            "id": identificador,
+            "nombre": nombres + " " + apellidos,
+            "documento": "TEST" + identificador[-3:],
+            "sexo": sexo,
+            "nacimiento": nacimiento,
+            "tipo_doc": "",
+            "municipio": municipio,
+            "comunidad": comunidad,
+            "semanas": semanas,
+            "ths": bool(ths),
+            "comorbilidad": bool(comorbilidad),
+            "faltan": lista_texto(faltan),
+            "vencidas": lista_texto(vencidas),
+            "nunca": lista_texto(nunca),})
+        persona = personas[-1]
+        anios = edad_meses(nacimiento, corte) // 12
+        persona["tipo_doc"] = "RC" if anios < 7 else ("TI" if anios < 18 else "CC")
+    return personas
+
+
+def estado_vacuna(persona, vacuna, corte):
+    meses = edad_meses(persona["nacimiento"], corte)
+    anios = meses // 12
+    sexo = persona["sexo"]
+    semanas = persona["semanas"]
+
+    if vacuna in Serie:
+        if meses >= 72:
+            return "NO_APLICA"
+        edades, maximo = Serie[vacuna]
+        exigibles = [edad for edad in edades if meses >= edad]
+        if not exigibles:
+            return "NO_APLICA"
+        if vacuna in persona["faltan"]:
+            return "NO_APLICA" if meses > maximo else "PENDIENTE"
+        return "AL_DIA"
+
+    if vacuna == "VPH":
+        objetivo = (sexo == "F" and 9 <= anios <= 17) or (sexo == "M" and anios == 9)
+    elif vacuna == "FA":
+        objetivo = meses >= 18 and persona["municipio"] in Municipios
+    elif vacuna == "INFLUENZA":
+        gestante = sexo == "F" and semanas >= 14
+        objetivo = gestante or 7 <= meses <= 23 or anios > 60 or persona["ths"] or persona["comorbilidad"]
+    elif vacuna == "COVID19":
+        objetivo = anios > 60 or persona["ths"] or persona["comorbilidad"]
+    elif vacuna == "TD":
+        objetivo = sexo == "F" and 9 <= anios <= 49
+    else:
+        objetivo = False
+
+    if not objetivo:
+        return "NO_APLICA"
+    if vacuna in persona["faltan"] or vacuna in persona["nunca"]:
+        return "PENDIENTE"
+    if vacuna in persona["vencidas"]:
+        return "VENCIDO"
+    return "AL_DIA"
+
+
+def evaluar(persona, corte):
+    estados = {vacuna: estado_vacuna(persona, vacuna, corte) for vacuna in Pesos}
+    pendientes = [v for v in Pesos if estados[v] in ("PENDIENTE", "VENCIDO")]
+    carga = sum(Pesos[v] for v in pendientes)
+    zona = Municipios[persona["municipio"]][3] if pendientes else 0
+    total = carga + zona
+    if not pendientes:
+        lista = ""
+    elif total > 10:
+        lista = "URGENTE"
+    elif total >= 6:
+        lista = "IMPORTANTE"
+    else:
+        lista = "CORTO PLAZO"
+    detalle = ", ".join(v + " +" + str(Pesos[v]) for v in pendientes)
+    if pendientes:
+        detalle += ", " + Municipios[persona["municipio"]][0] + " +" + str(zona)
+        detalle += " = " + str(total) + " -> " + lista
+    else:
+        detalle = "Sin pendientes"
+    return {
+        "estados": estados,
+        "pendientes": pendientes,
+        "carga": carga,
+        "puntaje": total,
+        "lista": lista,
+        "detalle": detalle,
+    }
+
+
+def agrupar(personas, corte):
+    grupos = {}
+    for persona in personas:
+        persona["resultado"] = evaluar(persona, corte)
+        clave = (persona["municipio"], persona["comunidad"])
+        grupos.setdefault(clave, []).append(persona)
+    return grupos
+
+
+def indice(grupo, municipio):
+    con_pendientes = [p for p in grupo if p["resultado"]["pendientes"]]
+    proporcion = 100 * len(con_pendientes) / len(grupo)
+    carga = sum(p["resultado"]["carga"] for p in grupo) / len(grupo)
+    carga_normalizada = 100 * carga / sum(Pesos.values())
+    riesgo_zona = 100 * Municipios[municipio][3] / 7
+    valor = proporcion * 0.60 + carga_normalizada * 0.30 + riesgo_zona * 0.10
+    return valor, len(con_pendientes)
+
+
+def mostrar_coberturas():
+    print("\nCOBERTURAS MUNICIPALES DEL TABLERO")
+    for codigo, datos in Municipios.items():
+        print(f"{codigo} {datos[0]}: {datos[1]:.2f}% ({datos[2]})")
+
+
+def puntaje_mayor(persona):
+    return -persona["resultado"]["puntaje"]
+
+
+def peso_mayor(vacuna):
+    return -Pesos[vacuna]
+
+
+def mostrar_listas(personas):
+    print("\nLISTAS")
+    for nombre_lista in ("URGENTE", "IMPORTANTE", "CORTO PLAZO"):
+        seleccion = [p for p in personas if p["resultado"]["lista"] == nombre_lista]
+        seleccion.sort(key=puntaje_mayor)
+        print(f"\n{nombre_lista}: {len(seleccion)}")
+        for persona in seleccion:
+            datos = Municipios[persona["municipio"]]
+            edad = edad_meses(persona["nacimiento"], CortePredeterminado)
+            print(
+                f"{persona['id']} {persona['nombre']} | {edad} meses | "
+                f"{datos[0]} / {persona['comunidad']} | {persona['resultado']['detalle']}")
+
+
+def mostrar_comunidades(grupos):
+    print("\nINDICE DE REZAGO POR COMUNIDAD")
+    for (municipio, comunidad), grupo in grupos.items():
+        valor, cantidad = indice(grupo, municipio)
+        print(f"{Municipios[municipio][0]} / {comunidad}: {valor:.1f}/100, {cantidad}/{len(grupo)} con pendientes")
+
+
+def mensaje(municipio, comunidad, grupo):
+    vacunas = {}
+    for persona in grupo:
+        for vacuna in persona["resultado"]["pendientes"]:
+            vacunas[vacuna] = vacunas.get(vacuna, 0) + 1
+    principales = sorted(vacunas, key=peso_mayor)[:3]
+    pendientes = sum(bool(p["resultado"]["pendientes"]) for p in grupo)
+    valor, _ = indice(grupo, municipio)
+    mas = ", ".join(principales) if principales else "ningun biologico"
+    return (
+        f"{comunidad}, {Municipios[municipio][0]}: {pendientes} de {len(grupo)} "
+        f"registros tienen pendientes. Mas frecuentes: {mas}. "
+        f"Indice: {valor:.1f}/100. Revisen los carnets y consulten el servicio PAI. "
+        "El resumen solo cubre personas registradas.")
+
+
+def mostrar_mensajes(grupos):
+    print("\nMENSAJES PARA LIDERES")
+    for (municipio, comunidad), grupo in grupos.items():
+        print(mensaje(municipio, comunidad, grupo))
+
+
+def mostrar_kpis(personas, grupos, milisegundos):
+    listas = {"URGENTE": 0, "IMPORTANTE": 0, "CORTO PLAZO": 0, "SIN_PENDIENTES": 0}
+    estados = {"AL_DIA": 0, "PENDIENTE": 0, "VENCIDO": 0}
+    for persona in personas:
+        lista = persona["resultado"]["lista"] or "SIN_PENDIENTES"
+        listas[lista] += 1
+        for estado in persona["resultado"]["estados"].values():
+            if estado in estados:
+                estados[estado] += 1
+    aplicables = sum(estados.values())
+    porcentaje = 100 * estados["AL_DIA"] / aplicables if aplicables else 0
+    print("\nKPIS")
+    print("Personas:", len(personas), "| Comunidades:", len(grupos))
+    print("Listas:", listas)
+    print("Estados:", estados)
+    print(f"Al dia entre dosis aplicables: {porcentaje:.1f}%")
+    print(f"Tiempo de calculo: {milisegundos:.2f} ms")
+
+
+def advertencia():
+    print(
+        "Aviso: este ejemplo sigue las reglas del material entregado y no incluye "
+        "todos los cambios del PAI 2026. No usar para decisiones clinicas sin revision profesional.")
+
+
+def menu(personas, grupos, milisegundos):
+    while True:
+        print("\n1 Listas  2 Comunidades  3 Mensajes  4 Coberturas  5 KPIs  0 Salir")
+        opcion = input("Opcion: ").strip()
+        if opcion == "1":
+            mostrar_listas(personas)
+        elif opcion == "2":
+            mostrar_comunidades(grupos)
+        elif opcion == "3":
+            mostrar_mensajes(grupos)
+        elif opcion == "4":
+            mostrar_coberturas()
+        elif opcion == "5":
+            mostrar_kpis(personas, grupos, milisegundos)
+        elif opcion == "0":
+            break
+        else:
+            print("Opcion no valida.")
+
+
+def main():
+    corte = CortePredeterminado
+    personas = crear_personas(corte)
+    inicio = time.perf_counter()
+    grupos = agrupar(personas, corte)
+    milisegundos = (time.perf_counter() - inicio) * 1000
+    advertencia()
+    menu(personas, grupos, milisegundos)
+
+main()
